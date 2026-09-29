@@ -1,0 +1,48 @@
+name: Build Windows x64
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Windows x86_64
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: windows-cargo-${{ hashFiles('Cargo.lock') }}
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $stage = "dist\tgstate"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item target\release\tgstate.exe $stage\
+          Copy-Item -Recurse app "$stage\app"
+          Copy-Item .env.example, README.md, Dockerfile $stage\
+          Compress-Archive -Path dist\tgstate -DestinationPath dist\tgstate-windows-x64.zip -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tgstate-windows-x64
+          path: dist\tgstate-windows-x64.zip
+          if-no-files-found: error
+
+      - name: Test
+        run: cargo test --release
