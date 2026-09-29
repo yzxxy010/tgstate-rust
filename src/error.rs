@@ -76,7 +76,11 @@ pub enum AppErrorKind {
     #[error("Pool error: {0}")]
     Pool(#[from] r2d2::Error),
 
+    // 目前 telegram 模块的错误以 `String` 形式向上传递（routes 里用
+    // `http_error(BAD_GATEWAY, ...)` 手工映射），该变体暂未被构造；
+    // 保留以维持错误分类完整，故显式允许 dead_code（同 Config）。
     #[error("Telegram API error: {0}")]
+    #[allow(dead_code)]
     Telegram(String),
 
     #[error("HTTP error: {0}")]

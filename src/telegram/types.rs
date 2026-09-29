@@ -12,7 +12,11 @@ pub struct Update {
     pub update_id: i64,
     pub message: Option<Message>,
     pub channel_post: Option<Message>,
+    // getUpdates 订阅了 edited_* 事件（见 bot_polling 的 allowed_updates），
+    // 但目前不对其做处理，仅保留字段以完整映射 API 载荷。
+    #[allow(dead_code)]
     pub edited_message: Option<Message>,
+    #[allow(dead_code)]
     pub edited_channel_post: Option<Message>,
 }
 
